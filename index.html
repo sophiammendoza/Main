@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin Catcher Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+        }
+        
+        .game-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            color: white;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        #gameCanvas {
+            border: 3px solid white;
+            border-radius: 10px;
+            background: linear-gradient(180deg, #87CEEB 0%, #98FB98 100%);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .score {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .instructions {
+            color: white;
+            margin-top: 10px;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+        }
+        
+        .restart-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        
+        .restart-btn:hover {
+            background: #45a049;
+        }
+
+        .name-input-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            display: block;
+            z-index: 1000;
+        }
+
+        .name-input {
+            padding: 10px;
+            font-size: 18px;
+            border: 2px solid #4CAF50;
+            border-radius: 5px;
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            text-align: center;
+            width: 200px;
+        }
+
+        .start-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .start-btn:hover {
+            background: #45a049;
+        }
+
+        .start-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        .high-scores {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .high-scores h3 {
+            color: #FFD700;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .high-score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .high-score-item:last-child {
+            border-bottom: none;
+        }
+
+        .high-score-name {
+            font-weight: bold;
+            color: #90EE90;
+        }
+
+        .high-score-score {
+            color: #FFD700;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🪙 Coin Catcher 🐷</h1>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div class="score">Score: <span id="score">0</span></div>
+        <div class="instructions">Use ← → arrow keys to move the piggy bank and catch falling coins!</div>
+        
+        <!-- Name Input Screen -->
+        <div class="name-input-screen" id="nameInputScreen">
+            <h2>🏆 Enter Your Name 🏆</h2>
+            <p>Ready to catch some coins and climb the leaderboard?</p>
+            <input type="text" class="name-input" id="playerNameInput" placeholder="Enter your name..." maxlength="15">
+            <br>
+            <button class="start-btn" id="startGameBtn" onclick="startGameWithName()" disabled>Start Game!</button>
+            
+            <!-- High Scores Display -->
+            <div class="high-scores" id="highScores">
+                <h3>🏆 High Scores 🏆</h3>
+                <div id="highScoresList">
+                    <div class="high-score-item">
+                        <span class="high-score-name">No scores yet!</span>
+                        <span class="high-score-score">Play to set the first record!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-over" id="gameOver">
+            <h2>Game Over!</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <div id="newHighScore" style="display: none;">
+                <p style="color: #FFD700; font-weight: bold;">🎉 NEW HIGH SCORE! 🎉</p>
+            </div>
+            <button class="restart-btn" onclick="restartGame()">Play Again</button>
+            <button class="restart-btn" onclick="showNameInput()" style="background: #2196F3; margin-left: 10px;">New Player</button>
+        </div>
+    </div>
+    
+    <script src="Piggy Game.js"></script>
+</body>
+</html>
